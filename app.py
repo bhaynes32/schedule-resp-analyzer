@@ -108,7 +108,13 @@ def estimate_on_time_probabilities(df, size=10000):
         probabilities.append(row_data)
 
     return pd.DataFrame(probabilities)
+st.header("How the Ratios are Calculated")
 
+st.markdown("""
+- **Min**: Sum of `Actual Duration` / `Original Duration` for all activities that finished **early**  
+- **Most Likely**: Sum of `Actual Duration` / `Original Duration` for **all completed activities**  
+- **Max**: Sum of `Actual Duration` / `Original Duration` for all activities that finished **late**
+""")
 if uploaded_file:
     result_df = process_file(uploaded_file)
     
@@ -130,10 +136,4 @@ if uploaded_file:
     else:
         st.warning("No valid RESP data found in uploaded file.")
 
-st.header("How the Ratios are Calculated")
 
-st.markdown("""
-- **Min**: Sum of `Actual Duration` / `Original Duration` for all activities that finished **early**  
-- **Most Likely**: Sum of `Actual Duration` / `Original Duration` for **all completed activities**  
-- **Max**: Sum of `Actual Duration` / `Original Duration` for all activities that finished **late**
-""")
