@@ -24,15 +24,16 @@ min_activities = st.number_input(
 )
 
 
-def process_file(file):
+def process_file(file, min_activities=5):
+    file_name = file.name  # capture filename
     df = pd.read_excel(file)
-    name = file.name
     df.columns = [col.strip() for col in df.columns]
 
-    # Clean + rename columns
+    # Drop empty 'G - Resp' if exists
     if 'G - Resp' in df.columns and df['G - Resp'].isna().all():
         df = df.drop(columns=['G - Resp'])
 
+    # Rename columns
     for col in df.columns:
         if 'Original Duration' in col:
             df = df.rename(columns={col: 'OD'})
@@ -41,36 +42,46 @@ def process_file(file):
         elif 'G - Resp' not in col and 'resp' in col.lower():
             df = df.rename(columns={col: 'G - Resp'})
 
-    if 'G - Resp' not in df.columns or df['G - Resp'].isna().all():
-        return None  # skip bad files
+    # Ensure required columns are present
+    required_cols = {'OD', 'ACDur', 'Activity Status', 'G - Resp', 'Region', 'Division', 'Location'}
+    if not required_cols.issubset(df.columns) or df['G - Resp'].isna().all():
+        return None  # Skip bad files
 
+    # Clean and filter data
     df = df.dropna(subset=['OD', 'ACDur'])
     df = df[df['Activity Status'] == 'Completed']
     df = df[df['OD'] != 0]
     df['ACDur'] = df.apply(lambda x: min(x['ACDur'], 2 * x['OD']), axis=1)
     df = df.dropna(subset=['G - Resp'])
 
+    # Build results
     results = []
-    for resp in df['G - Resp'].unique():
-        filtered = df[df['G - Resp'] == resp]
-        if len(filtered) < min_activities:
+    grouped = df.groupby(['G - Resp', 'Region', 'Division', 'Location'])
+
+    for (resp, region, division, location), group in grouped:
+        if len(group) < min_activities:
             continue
 
-        df_min = filtered[filtered['ACDur'] < filtered['OD']]
-        df_max = filtered[filtered['ACDur'] > filtered['OD']]
+        df_min = group[group['ACDur'] < group['OD']]
+        df_max = group[group['ACDur'] > group['OD']]
 
         min_ratio = df_min['ACDur'].sum() / df_min['OD'].sum() if not df_min.empty else np.nan
-        ml_ratio = filtered['ACDur'].sum() / filtered['OD'].sum()
+        ml_ratio = group['ACDur'].sum() / group['OD'].sum()
         max_ratio = df_max['ACDur'].sum() / df_max['OD'].sum() if not df_max.empty else np.nan
 
-        results.append({'Project': name,
+        results.append({
+            'File': file_name,
             'G - Resp': resp,
+            'Region': region,
+            'Division': division,
+            'Location': location,
             'Min': round(min_ratio, 4) if pd.notna(min_ratio) else 1,
             'Most Likely': round(ml_ratio, 4) if pd.notna(ml_ratio) else None,
             'Max': round(max_ratio, 4) if pd.notna(max_ratio) else 2
         })
 
     return pd.DataFrame(results)
+
 
 if uploaded_file:
     result_df = process_file(uploaded_file)
