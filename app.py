@@ -26,6 +26,7 @@ min_activities = st.number_input(
 
 def process_file(file):
     df = pd.read_excel(file)
+    name = file.name
     df.columns = [col.strip() for col in df.columns]
 
     # Clean + rename columns
@@ -62,7 +63,7 @@ def process_file(file):
         ml_ratio = filtered['ACDur'].sum() / filtered['OD'].sum()
         max_ratio = df_max['ACDur'].sum() / df_max['OD'].sum() if not df_max.empty else np.nan
 
-        results.append({
+        results.append({'Project': name,
             'G - Resp': resp,
             'Min': round(min_ratio, 4) if pd.notna(min_ratio) else 1,
             'Most Likely': round(ml_ratio, 4) if pd.notna(ml_ratio) else None,
