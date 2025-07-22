@@ -105,9 +105,6 @@ def estimate_on_time_probabilities(df, size=10000):
 
         records.append({
             'File': row['File'],
-            'Region': row['Region'],
-            'Division': row['Division'],
-            'Location': row['Location'],
             'G - Resp': row['G - Resp'],
             'Probability On Time': prob
         })
