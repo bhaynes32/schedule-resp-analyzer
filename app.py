@@ -86,6 +86,28 @@ def process_file(file, min_activities=5):
 
     return pd.DataFrame(results)
 
+def beta_pert_sample(min_val, mode, max_val, lamb=4, size=10000):
+    if min_val == max_val:
+        return np.full(size, min_val)
+    alpha = 1 + lamb * (mode - min_val) / (max_val - min_val)
+    beta_param = 1 + lamb * (max_val - mode) / (max_val - min_val)
+    return beta.rvs(alpha, beta_param, loc=min_val, scale=(max_val - min_val), size=size)
+
+def estimate_on_time_probabilities(df, size=10000):
+    probabilities = []
+
+    for _, row in df.iterrows():
+        if pd.isna(row['Min']) or pd.isna(row['Max']):
+            prob = None
+        else:
+            samples = beta_pert_sample(row['Min'], 1.0, row['Max'], size=size)
+            prob = round(np.mean(samples <= 1.0), 4)
+
+        row_data = row.to_dict()
+        row_data['Probability On Time'] = prob
+        probabilities.append(row_data)
+
+    return pd.DataFrame(probabilities)
 
 if uploaded_file:
     result_df = process_file(uploaded_file)
@@ -94,13 +116,19 @@ if uploaded_file:
         st.write("✅ Processed summary:")
         st.dataframe(result_df)
 
+        # Run Monte Carlo simulation using BetaPERT
+        simulated_df = estimate_on_time_probabilities(result_df)
+        st.write("🎯 Probability of Finishing On Time (based on PERT distribution):")
+        st.dataframe(simulated_df)
+
+        # Download simulation results
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            result_df.to_excel(writer, index=False)
-        st.download_button("Download Summary", output.getvalue(), file_name="Resp-Ratios.xlsx")
+            simulated_df.to_excel(writer, index=False)
+        st.download_button("Download Simulation Results", output.getvalue(), file_name="Resp-Simulation.xlsx")
+
     else:
         st.warning("No valid RESP data found in uploaded file.")
-
 
 st.header("How the Ratios are Calculated")
 
