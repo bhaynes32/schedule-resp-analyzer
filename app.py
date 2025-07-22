@@ -94,7 +94,7 @@ def beta_pert_sample(min_val, mode, max_val, lamb=4, size=10000):
     return beta.rvs(alpha, beta_param, loc=min_val, scale=(max_val - min_val), size=size)
 
 def estimate_on_time_probabilities(df, size=10000):
-    probabilities = []
+    records = []
 
     for _, row in df.iterrows():
         if pd.isna(row['Min']) or pd.isna(row['Max']):
@@ -103,11 +103,19 @@ def estimate_on_time_probabilities(df, size=10000):
             samples = beta_pert_sample(row['Min'], 1.0, row['Max'], size=size)
             prob = round(np.mean(samples <= 1.0), 4)
 
-        row_data = row.to_dict()
-        row_data['Probability On Time'] = prob
-        probabilities.append(row_data)
+        records.append({
+            'File': row['File'],
+            'Region': row['Region'],
+            'Division': row['Division'],
+            'Location': row['Location'],
+            'G - Resp': row['G - Resp'],
+            'Probability On Time': prob
+        })
 
-    return pd.DataFrame(probabilities)
+    return pd.DataFrame(records)
+
+
+
 st.header("How the Ratios are Calculated")
 
 st.markdown("""
