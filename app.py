@@ -40,7 +40,9 @@ def process_file(file, min_activities=5):
             df = df.rename(columns={col: 'OD'})
         elif 'Actual Duration' in col:
             df = df.rename(columns={col: 'ACDur'})
-        elif 'G - Resp' not in col and 'resp' in col.lower():
+        elif 'resp' in col.lower() and df[col].isna().all():
+            df = df.drop(columns=[col])
+        elif 'G - Resp' not in df.columns and 'resp' in col.lower():
             df = df.rename(columns={col: 'G - Resp'})
 
     # Ensure required columns are present
