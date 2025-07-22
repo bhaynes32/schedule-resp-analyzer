@@ -106,7 +106,7 @@ def estimate_on_time_probabilities(df, size=10000):
         records.append({
             'File': row['File'],
             'G - Resp': row['G - Resp'],
-            'Probability On Time': prob
+            'Probability Of Finishing On Time': prob
         })
 
     return pd.DataFrame(records)
@@ -129,7 +129,7 @@ if uploaded_file:
 
         # Run Monte Carlo simulation using BetaPERT
         simulated_df = estimate_on_time_probabilities(result_df)
-        st.write("🎯 Probability of Finishing On Time (based on PERT distribution):")
+        st.write("🎯 Probability of Finishing On Time (based on Monte Carlo with betaPERT distribution):")
         st.dataframe(simulated_df)
 
         # Download simulation results
