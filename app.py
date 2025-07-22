@@ -13,7 +13,8 @@ uploaded_file = st.file_uploader(
     "- `Resp` (this one could be project specific like `Resp6`) \n"
     "\n 📂 **Upload Excel file(s) (.xlsx)** ",
     type="xlsx",
-    accept_multiple_files=True
+    accept_multiple_files=False
+    
 )
 
 min_activities = st.number_input(
