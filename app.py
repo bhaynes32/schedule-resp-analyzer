@@ -71,10 +71,10 @@ def process_file(file, min_activities=5):
 
         results.append({
             'File': file_name,
-            'G - Resp': resp,
             'Region': region,
             'Division': division,
             'Location': location,
+            'G - Resp': resp,
             'Min': round(min_ratio, 4) if pd.notna(min_ratio) else 1,
             'Most Likely': round(ml_ratio, 4) if pd.notna(ml_ratio) else None,
             'Max': round(max_ratio, 4) if pd.notna(max_ratio) else 2
